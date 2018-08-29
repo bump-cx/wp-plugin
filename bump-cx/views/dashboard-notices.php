@@ -4,7 +4,7 @@
  */
 ?>
 <div class="notice notice-success is-dismissible <?php echo $this->plugin->name; ?>-notice-welcome">
-	<p>Thank you for installing <?php echo $this->plugin->displayName; ?>! <a target="_blank" href="https://app.bump.cx/login-logout/">Click here</a> to login to your Bump account.</p>
+	<p>Thank you for installing <?php echo $this->plugin->displayName; ?>! <a href="<?php echo $setting_page; ?>">Click here</a> to configure the plugin.</p>
 </div>
 <script type="text/javascript">
 	jQuery(document).ready( function($) {

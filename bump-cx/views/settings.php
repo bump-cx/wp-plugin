@@ -23,7 +23,15 @@
 	                    <h3 class="hndle"><?php _e( 'Settings', $this->plugin->name ); ?></h3>
 
 	                    <div class="inside">
-                        Bump Sell up in here
+                        <form action="options-general.php?page=<?php echo $this->plugin->name; ?>" method="post">
+                          <label for="bumpcx_api_key"><strong><?php _e( 'API Key', $this->plugin->name ); ?></strong></label>
+		                    	<input name="bumpcx_api_key" id="bumpcx_api_key" class="regular-text" value="<?php echo $this->settings['bumpcx_api_key']; ?>">
+		                    	<p class="description"><?php _e( 'Your API Key is available from your <a target="_blank" href="https://app.bump.cx/edit-profile/">Bump profile</a>.', $this->plugin->name ); ?></p>
+		                    	<?php wp_nonce_field( $this->plugin->name, $this->plugin->name.'_nonce' ); ?>
+		                    	<p>
+									<input name="submit" type="submit" name="Submit" class="button button-primary" value="<?php _e( 'Save', $this->plugin->name ); ?>" />
+								</p>
+						    </form>
 	                    </div>
 	                </div>
 	                <!-- /postbox -->

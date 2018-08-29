@@ -5,7 +5,7 @@
 * Version: 1.0.0
 * Author: BumpCX
 * Author URI: https://bump.cx/
-* Description: Allows you to insert the Bump code into your WordPress Woocommerce store
+* Description: Allows you to insert the Bump code into your WordPress WooCommerce store.
 * License: GPL2
 */
 
@@ -55,6 +55,7 @@ class BumpCX {
     add_action( 'wp_ajax_' . $this->plugin->name . '_dismiss_dashboard_notices', array( &$this, 'dismissDashboardNotices' ) );
 
     // Frontend Hooks
+		add_action( 'wp_head', array( &$this, 'hook_metatag' ) );
     add_action( 'wp_head', array( &$this, 'frontendHeader' ) );
 	}
 
@@ -102,14 +103,38 @@ class BumpCX {
     * Save POSTed data from the Administration Panel into a WordPress option
     */
     function adminPanel() {
-		// only admin user can access this page
-		if ( !current_user_can( 'administrator' ) ) {
-			echo '<p>' . __( 'Sorry, you are not allowed to access this page.', $this->plugin->name ) . '</p>';
-			return;
-		}
+			// only admin user can access this page
+			if ( !current_user_can( 'administrator' ) ) {
+				echo '<p>' . __( 'Sorry, you are not allowed to access this page.', $this->plugin->name ) . '</p>';
+				return;
+			}
+			// Save Settings
+			if ( isset( $_REQUEST['submit'] ) ) {
+				// Check nonce
+				if ( !isset( $_REQUEST[$this->plugin->name.'_nonce'] ) ) {
+					// Missing nonce
+					$this->errorMessage = __( 'nonce field is missing. Settings NOT saved.', $this->plugin->name );
+				} elseif ( !wp_verify_nonce( $_REQUEST[$this->plugin->name.'_nonce'], $this->plugin->name ) ) {
+						// Invalid nonce
+						$this->errorMessage = __( 'Invalid nonce specified. Settings NOT saved.', $this->plugin->name );
+				} else {
+					// Save
+					// $_REQUEST has already been slashed by wp_magic_quotes in wp-settings
+					// so do nothing before saving
+					update_option( 'bumpcx_api_key', $_REQUEST['bumpcx_api_key'] );
+					update_option( $this->plugin->db_welcome_dismissed_key, 1 );
+					$this->message = __( 'Settings Saved.', $this->plugin->name );
+				}
+			}
 
-		// Load Settings Form
+			// Get latest settings
+			$this->settings = array(
+				'bumpcx_api_key' => esc_html( wp_unslash( get_option( 'bumpcx_api_key' ) ) ),
+			);
+
+			// Load Settings Form
 			include_once( WP_PLUGIN_DIR . '/' . $this->plugin->name . '/views/settings.php' );
+
     }
 
     /**
@@ -117,6 +142,16 @@ class BumpCX {
 	*/
 	function loadLanguageFiles() {
 		load_plugin_textdomain( $this->plugin->name, false, $this->plugin->name . '/languages/' );
+	}
+
+	/**
+	* Outputs metatag to the frontend header
+	*/
+	function hook_metatag() {
+		global $wp;
+		$verification = get_option( 'bumpcx_api_key' );
+		$output = '<meta name="bump-site-verification" content="'.$verification.'" />' . PHP_EOL;
+		echo $output;
 	}
 
 	/**
@@ -143,6 +178,8 @@ class BumpCX {
 			$location = "cart";
 		}	elseif ( is_product() ) {
 			$location = "product";
+		}	elseif ( is_shop() ) {
+			$location = "category";
 		}	elseif ( is_product_tag() ) {
 			$location = "category";
 		} elseif ( is_product_category() ) {
@@ -223,8 +260,8 @@ function bump_cx_display_admin_notice_error() {
 		</style>
 		<!-- display our error message -->
 		<div class="error">
-			<p><?php _e( 'Bump CX for WooCommerce could not be activated because WooCommerce is not installed and active.', 'yikes-inc-easy-custom-woocommerce-product-tabs' ); ?></p>
-			<p><?php _e( 'Please install and activate ', 'yikes-inc-easy-custom-woocommerce-product-tabs' ); ?><a href="<?php echo admin_url( 'plugin-install.php?tab=search&type=term&s=WooCommerce' ); ?>" title="WooCommerce">WooCommerce</a><?php _e( ' before activating the plugin.', 'bump-cx' ); ?></p>
+			<p><?php _e( 'Bump CX for WooCommerce could not be activated because WooCommerce is not installed and active.', 'Bump CX' ); ?></p>
+			<p><?php _e( 'Please install and activate ', 'Bump CX' ); ?><a href="<?php echo admin_url( 'plugin-install.php?tab=search&type=term&s=WooCommerce' ); ?>" title="WooCommerce">WooCommerce</a><?php _e( ' before activating the plugin.', 'Bump CX' ); ?></p>
 		</div>
 	<?php
 }
